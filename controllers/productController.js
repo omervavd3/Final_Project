@@ -117,3 +117,14 @@ exports.getProductCookie = async(req,res) => {
       res.status(500).send({ error: error.messeage });
   }
 }
+
+exports.getProductsByCategory = async(req,res) => {
+  try {
+    const {productsCategory} = req.body;
+    const products = await ProductModel.find({category:productsCategory});
+    res.status(200).send({isFound:true, products: products})
+  } catch (error) {
+      console.error(error);
+      res.status(500).send({ error: error.messeage });
+  }
+}

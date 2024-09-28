@@ -13,6 +13,13 @@
     <h1 id="helloMessage">Hello</h1>
 
 
+    <select id="categoryFilterSearch" name="category" onchange="handleCategorySearch()">
+        <option value="all products">All Products</option>
+        <option value="Fruits">Fruits</option>
+        <option value="Dairy">Dairy</option>
+        <option value="Hot Girls">Hot Girls</option>
+    </select>
+
     <div id="signUpForm">
         <form method="post" onsubmit="handleAddUser(event)">
             <input type="text" name="name" placeholder="Name" required>
