@@ -128,6 +128,7 @@ async function loadStore() {
         <h5 class="productPrice">${product.price}$</h5>
         <h5 class="productAmount">${product.amount} in stock</h5>
         <button onclick="handleAddToCart('${product._id}')">Add to cart</button>
+        <button onclick="getProductToProductPage('${product._id}')">View</button>
       </div>
     `
     } else {
@@ -138,6 +139,7 @@ async function loadStore() {
         <p class="productText">${product.description}</p>
         <h5 class="productPrice">${product.price}$</h5>
         <h5 class="productAmount">${product.amount} in stock</h5>
+        <button onclick="getProductToProductPage('${product._id}')">View</button>
       </div>
     ` 
     }
@@ -287,6 +289,51 @@ async function handleDeleteProduct(id) {
   .then((data) => {
     console.log(data);
     loadAdminStore()
+  })
+}
+
+//Sets product cookie
+async function getProductToProductPage(productId) {
+  await fetch("/product/setProductCookie", {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({productId: productId}),
+  })
+  .then((res) => res.json())
+  .then((data) => {
+    console.log(data);
+    window.location.href = "./productPage.html"
+  })
+}
+
+//Load product page
+async function loadProductPage() {
+  await fetch("/product/getProductFromCookie", {
+    method: "GET",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+  })
+  .then((res) => res.json())
+  .then((data) => {
+    console.log(data);
+    const product = data.product
+    const viewProductDiv = document.getElementById("viewProduct");
+    const html = 
+    `
+      <div class="product">
+        <h2 class="productTitle">${product.title}</h2>
+        <img class="productImg" src="${product.img}" alt="">
+        <p class="productText">${product.description}</p>
+        <h5 class="productPrice">${product.price}$</h5>
+        <h5 class="productAmount">${product.amount} in stock</h5>
+      </div>
+    `
+    viewProductDiv.innerHTML = html;
   })
 }
 

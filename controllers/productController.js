@@ -86,3 +86,34 @@ exports.removeProductFromCart = async(req,res) => {
       res.status(500).send({ error: error.messeage });
   }
 }
+
+exports.setProductCookie = async(req,res) => {
+  try {
+    const {productId} = req.body;
+    const product = await ProductModel.findOne({_id:productId});
+    if(product) {
+      res.clearCookie('product');
+      res.cookie('product', product, { maxAge: 900000, httpOnly: true });
+      res.status(200).send({isFound:true, product: product})
+    } else {
+      res.status(200).send({isFound:false, product: undefined})
+    }
+  } catch (error) {
+      console.error(error);
+      res.status(500).send({ error: error.messeage });
+  }
+}
+
+exports.getProductCookie = async(req,res) => {
+  try {
+    const product = req.cookies.product;
+    if(product) {
+      res.status(200).send({isFound:true, product: product})
+    } else {
+      res.status(200).send({isFound:false, product: undefined})
+    }
+  } catch (error) {
+      console.error(error);
+      res.status(500).send({ error: error.messeage });
+  }
+}
