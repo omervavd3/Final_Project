@@ -54,7 +54,7 @@ async function handleLogInUser(ev) {
       document.getElementById("logIn_logOut").innerHTML = 
       `
         <button onclick="handleLogOut()">Log Out</button>
-        <a href="./checkout.html"><button>To check out</button></a>
+        <a href="./cart.html"><button>To cart</button></a>
       `
       document.getElementById("signUpForm").style.display = "none"
     }
@@ -100,6 +100,12 @@ async function handleLogOut() {
     }
   })
 }
+
+//Loads check out page
+async function loadCheckOut() {
+  
+}
+
 
 
 
@@ -164,7 +170,7 @@ async function loadStore() {
       document.getElementById("logIn_logOut").innerHTML = 
         `
           <button onclick="handleLogOut()">Log Out</button>
-          <a href="./checkout.html"><button>To check out</button></a>
+          <a href="./cart.html"><button>To cart</button></a>
         `
       document.getElementById("signUpForm").style.display = "none"
     }
@@ -413,7 +419,7 @@ async function handleCategorySearch() {
         document.getElementById("logIn_logOut").innerHTML = 
           `
             <button onclick="handleLogOut()">Log Out</button>
-            <a href="./checkout.html"><button>To check out</button></a>
+            <a href="./cart.html"><button>To cart</button></a>
           `
         document.getElementById("signUpForm").style.display = "none"
       }
@@ -453,8 +459,8 @@ async function handleAddToCart(productId) {
   })
 }
 
-//Load checkout page
-async function loadCheckoutPage() {
+//Load cart page
+async function loadCartPage() {
   await fetch("/userProduct/getUserProducts", {
     method: "GET",
     headers: {
@@ -478,8 +484,9 @@ async function loadCheckoutPage() {
         productsIds[index] = data.products[index].productId;
         productsAmount[index] = data.products[index].amount;
       }
-
+      
       var allProducts = [];
+      var productsPrice = []
       for (let index = 0; index < productsIds.length; index++) {
         await fetch("/product/getProductById", {
           method: "POST",
@@ -492,14 +499,15 @@ async function loadCheckoutPage() {
         .then((res) => res.json())
         .then((data) => {
           allProducts[index] = data.product
+          productsPrice[index] = data.product.price;
         })
       }
-      console.log(allProducts)
+      
       const allUseerProductsDiv = document.getElementById("allUseerProducts");
       const html = allProducts.map((product,index) => {
         return `
-          <div class="product">
-            <h2 class="productTitle">${product.title}</h2>
+        <div class="product">
+        <h2 class="productTitle">${product.title}</h2>
             <img class="productImg" src="${product.img}" alt="">
             <p class="productText">${product.description}</p>
             <h5 class="productPrice">${product.price}$</h5>
@@ -507,11 +515,19 @@ async function loadCheckoutPage() {
             <h5 class="productCategory">Category: ${product.category}</h5>
             <button onclick="handleRemoveFromCart('${product._id}')">Remove from cart</button>
           </div>
-        `
+          `
       }).join(" ")
       allUseerProductsDiv.innerHTML = html
-      console.log(allProducts[1])
-      console.log(productsAmount)
+      var totalPrice = 0;
+      productsPrice.forEach((price,index) => {
+        totalPrice += price * productsAmount[index]
+      })
+      const toCheckOutDiv = document.getElementById("toCheckOut");
+      toCheckOutDiv.innerHTML = 
+      `
+        <h5 class="totalAmount">Total amount: ${totalPrice}</h5>
+        <a href="./checkOut.html">To check out</a>
+      `
     }
   })
 }
@@ -529,7 +545,7 @@ async function handleRemoveFromCart(productId) {
   .then((res) => res.json())
   .then((data) => {
     console.log(data)
-    loadCheckoutPage()
+    loadCartPage()
   })
 
   await fetch("/product/removeProductFromCart", {
@@ -542,6 +558,6 @@ async function handleRemoveFromCart(productId) {
   })
   .then((res) => res.json())
   .then((data) => {
-    loadStore()
+    // loadStore()
   })
 }
