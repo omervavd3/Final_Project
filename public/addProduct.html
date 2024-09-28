@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="./index.js" defer></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body onload="loadAdminStore()">
+    <a href="./index.html">To store</a>
+    <form method="post" onsubmit="handleAddProduct(event)">
+        <input type="text" name="title" placeholder="Title of product">
+        <textarea name="description" cols="10" rows="1" placeholder="Description"></textarea>
+        <input type="number" name="price" placeholder="Price">
+        <input type="number" name="amount" placeholder="Amount">
+        <input type="text" name="img" placeholder="IMG link">
+        <input type="submit" value="Send">
+    </form>
+
+    
+    <div id="allProducts"></div>
+    <div id="updateProduct">
+        <!-- <form method="post" onsubmit="handleUpdateProductHelper(event)">
+            <input type="text" name="title" placeholder="Title of product">
+            <textarea name="description" cols="10" rows="1" placeholder="Description"></textarea>
+            <input type="number" name="price" placeholder="Price">
+            <input type="number" name="amount" placeholder="Amount">
+            <input type="text" name="img" placeholder="IMG link">
+            <input type="text" value="id" style="display: none;">
+            <input type="submit" value="Send" onclick="(() => {window.location.href = '#updateProduct'})">
+        </form> -->
+    </div>
+</body>
+</html>

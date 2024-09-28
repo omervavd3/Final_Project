@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <script src="./index.js" defer></script>
+    <title>Store</title>
+</head>
+
+<body onload="loadStore()">
+    <h1 id="helloMessage">Hello</h1>
+
+
+    <div id="signUpForm">
+        <form method="post" onsubmit="handleAddUser(event)">
+            <input type="text" name="name" placeholder="Name" required>
+            <input type="email" name="email" placeholder="Email" required>
+            <input type="password" name="password" placeholder="password" required>
+            <input type="submit" value="Send">
+        </form>
+    </div>
+
+    <div id="logIn_logOut">
+        <form method="get" onsubmit="handleLogInUser(event)">
+            <input type="text" name="name" placeholder="Name" required>
+            <input type="password" name="password" placeholder="password" required>
+            <input type="submit" value="Send">
+        </form>
+    </div>
+
+    <div id="allProducts"></div>
+</body>
+
+</html>

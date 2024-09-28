@@ -1,0 +1,13 @@
+html {
+    scroll-behavior: smooth;
+}
+.product {
+    max-width: 300px;
+    img {
+        width: 100%;
+    }
+}
+
+#updateProduct {
+    display: none;
+}
