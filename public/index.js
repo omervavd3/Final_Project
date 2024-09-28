@@ -579,7 +579,7 @@ async function handleRemoveFromCart(productId) {
   .then((res) => res.json())
   .then((data) => {
     console.log(data)
-    loadCartPage()
+    loadCartPageAndCheckOutPage()
   })
 
   await fetch("/product/removeProductFromCart", {
