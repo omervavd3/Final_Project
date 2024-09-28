@@ -36,8 +36,10 @@ connectDB();
 const userRouter = require('./routes/userRoutes');
 const productRouter = require("./routes/productRoutes");
 const userProductRouter = require("./routes/userProductRoutes");
+const purchaseRouter = require('./routes/purchaseRoutes')
 app.use('/user', userRouter);
 app.use('/product', productRouter);
 app.use('/userProduct', userProductRouter);
+app.use('/purchase', purchaseRouter);
 
 app.listen(8080)

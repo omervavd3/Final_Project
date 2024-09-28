@@ -50,3 +50,14 @@ exports.deleteFromCart = async(req,res) => {
         res.status(500).send({ error: error.messeage });
     }
 }
+
+exports.clearCartAfterPurchase = async(req,res) => {
+    try {
+        const userId = req.cookies['user'];
+        const cart = await UserProductModel.deleteMany({userId:userId})
+        res.status(200).send({isDeleted:true})
+    } catch (error) {
+        console.error(error);
+        res.status(500).send({ error: error.messeage });
+    }
+}

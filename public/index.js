@@ -103,7 +103,7 @@ async function handleLogOut() {
 
 //Loads check out page
 async function loadCheckOut() {
-  
+
 }
 
 
@@ -459,8 +459,8 @@ async function handleAddToCart(productId) {
   })
 }
 
-//Load cart page
-async function loadCartPage() {
+//Load cart page and load check out page
+async function loadCartPageAndCheckOutPage() {
   await fetch("/userProduct/getUserProducts", {
     method: "GET",
     headers: {
@@ -471,11 +471,13 @@ async function loadCartPage() {
   .then((res) => res.json())
   .then(async (data) => {
     const allUseerProductsDiv = document.getElementById("allUseerProducts");
+    const toCheckOutDiv = document.getElementById("toCheckOut");
     if(!data.products[0]) {
       allUseerProductsDiv.innerHTML = 
       `
         <h2>Cart is empty!</h2>
       `
+      toCheckOutDiv.style.display = "none"
     } else {
       console.log(data)
       var productsAmount = [];
@@ -502,32 +504,64 @@ async function loadCartPage() {
           productsPrice[index] = data.product.price;
         })
       }
-      
-      const allUseerProductsDiv = document.getElementById("allUseerProducts");
-      const html = allProducts.map((product,index) => {
-        return `
-        <div class="product">
-        <h2 class="productTitle">${product.title}</h2>
-            <img class="productImg" src="${product.img}" alt="">
-            <p class="productText">${product.description}</p>
-            <h5 class="productPrice">${product.price}$</h5>
-            <h5 class="productAmount">Amount in cart: ${productsAmount[index]}</h5>
-            <h5 class="productCategory">Category: ${product.category}</h5>
-            <button onclick="handleRemoveFromCart('${product._id}')">Remove from cart</button>
-          </div>
-          `
-      }).join(" ")
-      allUseerProductsDiv.innerHTML = html
       var totalPrice = 0;
       productsPrice.forEach((price,index) => {
         totalPrice += price * productsAmount[index]
       })
-      const toCheckOutDiv = document.getElementById("toCheckOut");
-      toCheckOutDiv.innerHTML = 
-      `
-        <h5 class="totalAmount">Total amount: ${totalPrice}</h5>
-        <a href="./checkOut.html">To check out</a>
-      `
+      const curPage = window.location.href;
+      if(curPage == "http://localhost:8080/cart.html") {
+        const allUseerProductsDiv = document.getElementById("allUseerProducts");
+        const html = allProducts.map((product,index) => {
+          return `
+          <div class="product">
+          <h2 class="productTitle">${product.title}</h2>
+              <img class="productImg" src="${product.img}" alt="">
+              <p class="productText">${product.description}</p>
+              <h5 class="productPrice">${product.price}$</h5>
+              <h5 class="productAmount">Amount in cart: ${productsAmount[index]}</h5>
+              <h5 class="productCategory">Category: ${product.category}</h5>
+              <button onclick="handleRemoveFromCart('${product._id}')">Remove from cart</button>
+          </div>
+            `
+        }).join(" ")
+        allUseerProductsDiv.innerHTML = html
+        toCheckOutDiv.innerHTML = 
+        `
+          <h5 class="totalAmount">Total amount: ${totalPrice}</h5>
+          <a href="./checkOut.html">To check out</a>
+        `;
+
+      } else {
+        const purchaseData = {
+          productsIds : productsIds,
+          productsAmount : productsAmount,
+          totalPrice : totalPrice
+        }
+        const checkOutDetailsDiv = document.getElementById("checkOutDetails");
+        const checkOutDetailsDivHtml = allProducts.map((product,index) => {
+          return `
+              <div class="product">
+              <h2 class="productTitle">${product.title}</h2>
+                  <img class="productImg" src="${product.img}" alt="">
+                  <p class="productText">${product.description}</p>
+                  <h5 class="productPrice">${product.price}$</h5>
+                  <h5 class="productAmount">Amount in cart: ${productsAmount[index]}</h5>
+                  <h5 class="productCategory">Category: ${product.category}</h5>
+              </div>
+            `
+        }).join(" ")
+        +
+        `
+            <h5 class="totalAmount">Total amount: ${totalPrice}</h5>
+            <button id="purchaseButton">Purchase</button>
+        `
+        checkOutDetailsDiv.innerHTML = checkOutDetailsDivHtml;
+        document.getElementById("purchaseButton").addEventListener('click', () => {hanldeAddPurchase(purchaseData)})
+
+      }
+      
+
+
     }
   })
 }
@@ -560,4 +594,38 @@ async function handleRemoveFromCart(productId) {
   .then((data) => {
     // loadStore()
   })
+}
+
+
+//Purchase
+//Adds a purchase
+async function hanldeAddPurchase(purchaseData) {
+  await fetch("/purchase/addPurchase", {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({productsIds: purchaseData.productsIds, productsAmounts:purchaseData.productsAmount, totalPrice:purchaseData.totalPrice}),
+  })
+  .then((res) => res.json())
+  .then(async (data) => {
+    if(data.purchaseCreated) {
+      alert("Thank you for your purchase!");
+      await fetch("/userProduct/clearCartAfterPurchase", {
+        method: "DELETE",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+      })
+      .then((res) => res.json())
+      .then((data) => {
+        if(data.isDeleted) {
+          window.location.href = "./index.html"
+        }
+      })
+    }
+  })
+
 }
