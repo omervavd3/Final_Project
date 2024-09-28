@@ -127,6 +127,7 @@ async function loadStore() {
         <p class="productText">${product.description}</p>
         <h5 class="productPrice">${product.price}$</h5>
         <h5 class="productAmount">${product.amount} in stock</h5>
+        <h5 class="productCategory">Category: ${product.category}</h5>
         <button onclick="handleAddToCart('${product._id}')">Add to cart</button>
         <button onclick="getProductToProductPage('${product._id}')">View</button>
       </div>
@@ -139,6 +140,7 @@ async function loadStore() {
         <p class="productText">${product.description}</p>
         <h5 class="productPrice">${product.price}$</h5>
         <h5 class="productAmount">${product.amount} in stock</h5>
+        <h5 class="productCategory">Category: ${product.category}</h5>
         <button onclick="getProductToProductPage('${product._id}')">View</button>
       </div>
     ` 
@@ -191,6 +193,7 @@ async function loadAdminStore() {
           <p class="productText">${product.description}</p>
           <h5 class="productPrice">${product.price}$</h5>
           <h5 class="productAmount">${product.amount} in stock</h5>
+          <h5 class="productCategory">Category: ${product.category}</h5>
           <button onclick="handleUpdateProduct('${product.title}', '${product.description}', '${product.price}', '${product.amount}', '${product.img}', '${product._id}')">Uptade ${product.title}</button>
           <button onclick="handleDeleteProduct('${product._id}')">Delete ${product.title}</button>
         </div>
@@ -208,8 +211,9 @@ async function handleAddProduct(ev) {
   const price = ev.target.elements.price.value;
   const amount = ev.target.elements.amount.value;
   const img = ev.target.elements.img.value;
+  const category = ev.target.elements.category.value;
   ev.target.reset();
-  const newProduct = { title: title, description: description, price: price, amount:amount, img:img };
+  const newProduct = { title: title, description: description, price: price, amount:amount, img:img, category:category };
   await fetch("/product/addProduct", {
     method: "POST",
     headers: {
@@ -242,6 +246,13 @@ function handleUpdateProduct(title,description,price,amount,img,id) {
             <input type="number" name="price" value="${price}">
             <input type="number" name="amount" value="${amount}">
             <input type="text" name="img" value="${img}">
+            <select name="category">
+              <option value="apple">Apple</option>
+              <option value="banana">Banana</option>
+              <option value="orange">Orange</option>
+              <option value="grape">Grape</option>
+              <option value="mango">Mango</option>
+            </select>
             <input type="text" name="_id" value="${id}" style="display: none;">
             <input type="submit" value="Send">
         </form>
@@ -255,6 +266,7 @@ async function handleUpdateProductHelper(ev) {
   const price = ev.target.elements.price.value;
   const amount = ev.target.elements.amount.value;
   const img = ev.target.elements.img.value;
+  const category = ev.target.elements.category.value;
   const _id = ev.target.elements._id.value;
   ev.target.reset();
   await fetch("/product/updateProduct", {
@@ -263,7 +275,7 @@ async function handleUpdateProductHelper(ev) {
       Accept: "application/json",
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({title,description,price,amount,img,_id}),
+    body: JSON.stringify({title,description,price,amount,img,category,_id}),
   })
   .then((res) => res.json())
   .then((data) => {
@@ -331,6 +343,7 @@ async function loadProductPage() {
         <p class="productText">${product.description}</p>
         <h5 class="productPrice">${product.price}$</h5>
         <h5 class="productAmount">${product.amount} in stock</h5>
+        <h5 class="productCategory">Category: ${product.category}</h5>
       </div>
     `
     viewProductDiv.innerHTML = html;
@@ -421,6 +434,7 @@ async function loadCheckoutPage() {
             <p class="productText">${product.description}</p>
             <h5 class="productPrice">${product.price}$</h5>
             <h5 class="productAmount">Amount in cart: ${productsAmount[index]}</h5>
+            <h5 class="productCategory">Category: ${product.category}</h5>
             <button onclick="handleRemoveFromCart('${product._id}')">Remove from cart</button>
           </div>
         `

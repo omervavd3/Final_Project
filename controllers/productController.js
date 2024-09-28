@@ -2,15 +2,15 @@ const ProductModel = require("../models/productModel");
 
 exports.addProduct = async(req,res) => {
     try {
-        const { title,description,price,amount,img } = req.body;
+        const { title,description,price,amount,img, category } = req.body;
         const findProduct = await ProductModel.findOne({title:title});
         if(findProduct) {
           res.status(200).send({ isExits: true, isCreated: false });
         } else {
           if(img) {
-            const productDB = await ProductModel.create({ title:title,description:description,price:price,amount:amount,img:img});
+            const productDB = await ProductModel.create({ title:title,description:description,price:price,amount:amount,img:img, category:category});
           } else {
-            const productDB = await ProductModel.create({ title:title,description:description,price:price,amount:amount});
+            const productDB = await ProductModel.create({ title:title,description:description,price:price,amount:amount, category:category});
           }          
           res.status(201).send({ isExits: false, isCreated: true });
         }
@@ -43,8 +43,8 @@ exports.deleteProduct = async(req,res) => {
 
 exports.updateProduct = async(req,res) => {
   try {
-    const {title,description,price,amount,img,_id} = req.body;
-    await ProductModel.findOneAndUpdate({_id}, {title,description,price,amount,img});
+    const {title,description,price,amount,img,category,_id} = req.body;
+    await ProductModel.findOneAndUpdate({_id}, {title,description,price,amount,img,category});
     res.status(200).send({isUptadet:true})
   } catch (error) {
       console.error(error);
