@@ -1,3 +1,6 @@
+//port
+const PORT = 8080;
+
 //express
 const express = require('express')
 const app = express()
@@ -42,4 +45,6 @@ app.use('/product', productRouter);
 app.use('/userProduct', userProductRouter);
 app.use('/purchase', purchaseRouter);
 
-app.listen(8080)
+app.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
+});
