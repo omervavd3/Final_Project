@@ -128,3 +128,29 @@ exports.getProductsByCategory = async(req,res) => {
       res.status(500).send({ error: error.messeage });
   }
 }
+
+exports.deleteByCategory = async(req,res) => {
+  try {
+    const {category} = req.body;
+    await ProductModel.deleteMany({category:category});
+    res.status(200).send({isDeleted:true})
+  } catch (error) {
+      console.error(error);
+      res.status(500).send({ error: error.messeage });
+  }
+}
+
+exports.getProductsIdByCategory = async(req,res) => {
+  try {
+    const {category} = req.body;
+    const products = await ProductModel.find({category:category});
+    const productsId = []
+    products.forEach((product,index) => {
+      productsId[index] = product._id
+    })
+    res.status(200).send({productsId:productsId})
+  } catch (error) {
+      console.error(error);
+      res.status(500).send({ error: error.messeage });
+  }
+}

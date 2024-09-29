@@ -240,11 +240,25 @@ async function handleAddProduct(ev) {
 }
 
 //Updates product
-function handleUpdateProduct(title,description,price,amount,img,id) {
+async function handleUpdateProduct(title,description,price,amount,img,id,category) {
   window.location.href = '#updateProduct'
   const updateDiv = document.getElementById("updateProduct");
   updateDiv.style.display = "block";
-  updateDiv.innerHTML = 
+  await fetch("/category/getAllCategories", {
+    method: "GET",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+  })
+  .then((res) => res.json())
+  .then((data) => {
+    const options = data.categories.map((category,index) => {
+      return `
+        <option value="${category.category}">${category.category}</option>
+      `
+    }).join(" ")
+    updateDiv.innerHTML = 
     `
       <form method="post" onsubmit="handleUpdateProductHelper(event)">
             <input type="text" name="title" value="${title}">
@@ -253,14 +267,13 @@ function handleUpdateProduct(title,description,price,amount,img,id) {
             <input type="number" name="amount" value="${amount}">
             <input type="text" name="img" value="${img}">
             <select name="category">
-              <option value="Fruits">Fruits</option>
-              <option value="Dairy">Dairy</option>
-              <option value="Hot Girls">Hot Girls</option>
+              ${options}
             </select>
             <input type="text" name="_id" value="${id}" style="display: none;">
             <input type="submit" value="Send">
-        </form>
-    `;
+            </form>
+            `;
+    })
 }
 
 async function handleUpdateProductHelper(ev) {
@@ -352,78 +365,6 @@ async function loadProductPage() {
     `
     viewProductDiv.innerHTML = html;
   })
-}
-
-//Filter by category
-async function handleCategorySearch() {
-  const categoryFilterSearch = document.getElementById("categoryFilterSearch").value
-  if(categoryFilterSearch == 'all products') {
-    loadStore()
-    return
-  }
-  await fetch("/product/getProductsByCategory", {
-    method: "POST",
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({productsCategory: categoryFilterSearch}),
-    })
-    .then((res) => res.json())
-    .then((data) => {
-      const products = data.products;
-      const allProductsDiv = document.getElementById("allProducts");
-      const html = products.map((product) => {
-        if(product.amount > 0) {
-          return `
-          <div class="product">
-            <h2 class="productTitle">${product.title}</h2>
-            <img class="productImg" src="${product.img}" alt="">
-            <p class="productText">${product.description}</p>
-            <h5 class="productPrice">${product.price}$</h5>
-            <h5 class="productAmount">${product.amount} in stock</h5>
-            <h5 class="productCategory">Category: ${product.category}</h5>
-            <button onclick="handleAddToCart('${product._id}')">Add to cart</button>
-            <button onclick="getProductToProductPage('${product._id}')">View</button>
-          </div>
-        `
-        } else {
-          return `
-          <div class="product">
-            <h2 class="productTitle">${product.title}</h2>
-            <img class="productImg" src="${product.img}" alt="">
-            <p class="productText">${product.description}</p>
-            <h5 class="productPrice">${product.price}$</h5>
-            <h5 class="productAmount">${product.amount} in stock</h5>
-            <h5 class="productCategory">Category: ${product.category}</h5>
-            <button onclick="getProductToProductPage('${product._id}')">View</button>
-          </div>
-        ` 
-        }
-      }).join(" ")
-      allProductsDiv.innerHTML = html;
-    })
-  
-    await fetch("/user/isLoggedIn", {
-      method: "GET",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-    })
-    .then((res) => res.json())
-    .then((data) => {
-      if(data.isFound) {
-        const helloMessageDiv = document.getElementById("helloMessage");
-        helloMessageDiv.innerHTML = `Hello ${data.user.name}`
-        document.getElementById("logIn_logOut").innerHTML = 
-          `
-            <button onclick="handleLogOut()">Log Out</button>
-            <a href="./cart.html"><button>To cart</button></a>
-          `
-        document.getElementById("signUpForm").style.display = "none"
-      }
-    })
 }
 
 
@@ -628,4 +569,205 @@ async function hanldeAddPurchase(purchaseData) {
     }
   })
 
+}
+
+
+//Category
+//Adds category
+async function handleAddCategory(ev) {
+  ev.preventDefault();
+  const category = ev.target.elements.category.value;
+  ev.target.reset();
+  await fetch("/category/addCategory", {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({category}),
+  })
+  .then((res) => res.json())
+  .then((data) => {
+    if(data.isCreated) {
+      loadCategories()
+    } else {
+      alert("Category already exits")
+    }
+  })
+}
+
+//Loads categories
+async function loadCategories() {
+  await fetch("/category/getAllCategories", {
+    method: "GET",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+  })
+  .then((res) => res.json())
+  .then((data) => {
+    console.log(data.categories)
+    const categorySelect = document.querySelectorAll("#categorySelect");
+    const html = data.categories.map((category,index) => {
+      return `
+        <option value="${category.category}">${category.category}</option>
+      `
+    }).join(" ")
+    categorySelect.forEach(select => select.innerHTML = html)
+  })
+}
+
+async function handleDeleteCategory(ev) {
+  ev.preventDefault();
+  const category = ev.target.elements.category.value;
+  ev.target.reset();
+  await fetch("/category/deleteCategory", {
+    method: "DELETE",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({category}),
+  })
+  .then((res) => res.json())
+  .then((data) => {
+    
+  })
+
+  await fetch("/product/getProductsIdByCategory", {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({category}),
+  })
+  .then((res) => res.json())
+  .then(async (data) => {
+    await fetch("/userProduct/deleteAfterDeleteCategory", {
+      method: "DELETE",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({productsId:data.productsId}),
+    })
+    .then((res) => res.json())
+    .then((data) => {
+      console.log(data)
+    })
+  })
+  
+  await fetch("/product/deleteByCategory", {
+    method: "DELETE",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({category}),
+  })
+  .then((res) => res.json())
+  .then((data) => {
+    loadCategories()
+    loadAdminStore()
+  })
+}
+
+//Loads categories to store
+async function loadCategoryToStore() {
+  await fetch("/category/getAllCategories", {
+    method: "GET",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+  })
+  .then((res) => res.json())
+  .then((data) => {
+    console.log(data.categories)
+    const categoryFilterSearch = document.getElementById("categoryFilterSearch")
+    const html = data.categories.map((category,index) => {
+      return `
+        <option value="${category.category}">${category.category}</option>
+      `
+    }).join(" ")
+    categoryFilterSearch.innerHTML = 
+    `
+      <option value="all products">All Products</option>
+      ${html}
+    `
+  })
+}
+
+//Filter by category
+async function handleCategorySearch() {
+  const categoryFilterSearch = document.getElementById("categoryFilterSearch").value
+  if(categoryFilterSearch == 'all products') {
+    loadStore()
+    return
+  }
+  await fetch("/product/getProductsByCategory", {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({productsCategory: categoryFilterSearch}),
+    })
+    .then((res) => res.json())
+    .then((data) => {
+      const products = data.products;
+      const allProductsDiv = document.getElementById("allProducts");
+      const html = products.map((product) => {
+        if(product.amount > 0) {
+          return `
+          <div class="product">
+            <h2 class="productTitle">${product.title}</h2>
+            <img class="productImg" src="${product.img}" alt="">
+            <p class="productText">${product.description}</p>
+            <h5 class="productPrice">${product.price}$</h5>
+            <h5 class="productAmount">${product.amount} in stock</h5>
+            <h5 class="productCategory">Category: ${product.category}</h5>
+            <button onclick="handleAddToCart('${product._id}')">Add to cart</button>
+            <button onclick="getProductToProductPage('${product._id}')">View</button>
+          </div>
+        `
+        } else {
+          return `
+          <div class="product">
+            <h2 class="productTitle">${product.title}</h2>
+            <img class="productImg" src="${product.img}" alt="">
+            <p class="productText">${product.description}</p>
+            <h5 class="productPrice">${product.price}$</h5>
+            <h5 class="productAmount">${product.amount} in stock</h5>
+            <h5 class="productCategory">Category: ${product.category}</h5>
+            <button onclick="getProductToProductPage('${product._id}')">View</button>
+          </div>
+        ` 
+        }
+      }).join(" ")
+      allProductsDiv.innerHTML = html;
+    })
+  
+    await fetch("/user/isLoggedIn", {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+    })
+    .then((res) => res.json())
+    .then((data) => {
+      if(data.isFound) {
+        const helloMessageDiv = document.getElementById("helloMessage");
+        helloMessageDiv.innerHTML = `Hello ${data.user.name}`
+        document.getElementById("logIn_logOut").innerHTML = 
+          `
+            <button onclick="handleLogOut()">Log Out</button>
+            <a href="./cart.html"><button>To cart</button></a>
+          `
+        document.getElementById("signUpForm").style.display = "none"
+      }
+    })
 }
