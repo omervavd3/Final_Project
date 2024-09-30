@@ -11,3 +11,13 @@ exports.addPurchase = async(req,res) => {
         res.status(500).send({ error: error.messeage });
     }
 }
+
+exports.getAllPurchases = async(req,res) => {
+    try {
+        const purchases = await PurchaseModel.find({})
+        res.status(200).send({purchases:purchases})
+    } catch (error) {
+        console.error(error);
+        res.status(500).send({ error: error.messeage });
+    }
+}

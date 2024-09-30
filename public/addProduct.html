@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="style.css">
 </head>
 
-<body onload="loadAdminStore(), loadCategories()">
+<body onload="loadAdminStore(), loadCategories(), loadPurchaseHistory()">
     <a href="./index.html">To store</a>
 
     <form method="post" onsubmit="handleAddCategory(event)">
@@ -51,6 +51,8 @@
             <input type="submit" value="Send" onclick="(() => {window.location.href = '#updateProduct'})">
         </form> -->
     </div>
+
+    <div id="purchaseHistory"></div>
 </body>
 
 </html>

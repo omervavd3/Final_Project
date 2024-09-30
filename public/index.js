@@ -188,7 +188,6 @@ async function loadAdminStore() {
   })
   .then((res) => res.json())
   .then((data) => {
-    console.log(data.allProducts);
     const products = data.allProducts;
     const allProductsDiv = document.getElementById("allProducts");
     const html = products.map((product) => {
@@ -380,23 +379,25 @@ async function handleAddToCart(productId) {
     body: JSON.stringify({productId: productId}),
   })
   .then((res) => res.json())
-  .then((data) => {
+  .then(async (data) => {
     if(data.isProductAdded){
+      await fetch("/product/addProductToCart", {
+        method: "PATCH",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({productId: productId}),
+      })
+      .then((res) => res.json())
+      .then((data) => {
+        loadStore()
+      })
       alert("Product added!")
+    } else {
+      alert("Sign in to add product to cart")
+      return
     }
-  })
-
-  await fetch("/product/addProductToCart", {
-    method: "PATCH",
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({productId: productId}),
-  })
-  .then((res) => res.json())
-  .then((data) => {
-    loadStore()
   })
 }
 
@@ -568,7 +569,75 @@ async function hanldeAddPurchase(purchaseData) {
       })
     }
   })
+}
 
+//Loads peurchase history
+async function loadPurchaseHistory() {
+  const purchaseHistory = document.getElementById("purchaseHistory")
+  await fetch("/purchase/getAllPurchases", {
+    method: "GET",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+  })
+  .then((res) => res.json())
+  .then(async (data) => {
+    const purchases = data.purchases;
+    console.log(purchases)
+    if(!purchases) {
+      purchaseHistory.innerHTML = "<h2>No purchases has been made</h2>"
+    } else {
+      var html = ``;
+      for (let index = 0; index < purchases.length; index++) {
+        var name = ``;
+        var products = []
+        const productsAmounts = purchases[index].productsAmounts
+        const productsIds = purchases[index].productsIds
+
+        for (let index = 0; index < productsIds.length; index++) {
+          await fetch("/product/getProductById", {
+            method: "POST",
+            headers: {
+              Accept: "application/json",
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({productId: productsIds[index]}),
+          })
+          .then((res) => res.json())
+          .then((data) => {
+            const product = data.product
+            products.push(product)
+          })
+        }
+
+        await fetch("/user/getUserById", {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({_id:purchases[index].userId}),
+        })
+        .then((res) => res.json())
+        .then((data) => {
+          name = data.user.name
+        })
+
+        html += `<h3>${name}'s purchase:</h3>`;
+        html += products.map((product,index) => {
+          return `
+            <h4>${product.title}</h4>
+            <h4>${product.price}$</h4>
+            <h4>Amount: ${productsAmounts[index]}</h4>
+          `
+        }).join(" ")
+        html += `<h4>Total price: ${purchases[index].totalPrice}$</h4>`
+      }
+
+      purchaseHistory.innerHTML = `<h1>Purchase History</h1>` + html
+    }
+  })
 }
 
 
@@ -607,7 +676,6 @@ async function loadCategories() {
   })
   .then((res) => res.json())
   .then((data) => {
-    console.log(data.categories)
     const categorySelect = document.querySelectorAll("#categorySelect");
     const html = data.categories.map((category,index) => {
       return `

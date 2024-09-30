@@ -19,13 +19,17 @@ exports.addToCart = async(req,res) => {
     try {
         const {productId} = req.body;
         const userId = req.cookies['user'];
-        const product = await UserProductModel.findOne({userId:userId, productId:productId})
-        if(product) {
-            await UserProductModel.findOneAndUpdate({userId:userId, productId:productId}, {amount:product.amount + 1})
-            res.status(200).send({isProductAdded:true})
+        if(userId) {
+            const product = await UserProductModel.findOne({userId:userId, productId:productId})
+            if(product) {
+                await UserProductModel.findOneAndUpdate({userId:userId, productId:productId}, {amount:product.amount + 1})
+                res.status(200).send({isProductAdded:true})
+            } else {
+                await UserProductModel.create({userId: userId,productId: productId,amount:1})
+                res.status(200).send({isProductAdded:true})
+            }
         } else {
-            await UserProductModel.create({userId: userId,productId: productId,amount:1})
-            res.status(200).send({isProductAdded:true})
+            res.status(200).send({isProductAdded:false})
         }
     } catch (error) {
         console.error(error);
