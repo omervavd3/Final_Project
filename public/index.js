@@ -43,7 +43,7 @@ async function handleLogInUser(ev) {
   .then((data) => {
     console.log(data);
     if(data.admin){
-      window.location.href = "./addProduct.html"
+      window.location.href = "./adminPage.html"
     }
     if(data.message == "Not found") {
       alert("User name or password are incorrect")
@@ -305,6 +305,19 @@ async function handleUpdateProductHelper(ev) {
 
 //Delets product
 async function handleDeleteProduct(id) {
+  await fetch("/userProduct/deleteAfterAdminDeletedProduct", {
+    method: "DELETE",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({productId: id}),
+  })
+  .then((res) => res.json())
+  .then((data) => {
+    console.log(data)
+  })
+
   await fetch("/product/deleteProduct", {
     method: "DELETE",
     headers: {
@@ -589,6 +602,7 @@ async function loadPurchaseHistory() {
       purchaseHistory.innerHTML = "<h2>No purchases has been made</h2>"
     } else {
       var html = ``;
+      html += `<h1 class="purchaseHistoryHeadline">Purchase History:</h1>`;
       for (let index = 0; index < purchases.length; index++) {
         var name = ``;
         var products = []
@@ -624,18 +638,20 @@ async function loadPurchaseHistory() {
           name = data.user.name
         })
 
-        html += `<h3>${name}'s purchase:</h3>`;
+        html += `<div class="purchaseHistoryCard">`
+        html += `<h3 class="purchaseHistoryName">${name}'s purchase:</h3>`;
         html += products.map((product,index) => {
           return `
-            <h4>${product.title}</h4>
-            <h4>${product.price}$</h4>
-            <h4>Amount: ${productsAmounts[index]}</h4>
+            <h4 class="purchaseHistoryTitle">${product.title}</h4>
+            <h4 class="purchaseHistoryPrice">${product.title} price: ${product.price}$</h4>
+            <h4 class="purchaseHistoryAmount">Amount: ${productsAmounts[index]}</h4>
           `
         }).join(" ")
-        html += `<h4>Total price: ${purchases[index].totalPrice}$</h4>`
+        html += `<h4 class="purchaseHistoryTotalPrice">Total price: ${purchases[index].totalPrice}$</h4>`
+        html += `</div>`
       }
 
-      purchaseHistory.innerHTML = `<h1>Purchase History</h1>` + html
+      purchaseHistory.innerHTML += html
     }
   })
 }

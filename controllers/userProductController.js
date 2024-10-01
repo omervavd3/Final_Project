@@ -69,10 +69,20 @@ exports.clearCartAfterPurchase = async(req,res) => {
 exports.deleteAfterDeleteCategory = async(req,res) => {
     try {
         const {productsId} = req.body
-        console.log(productsId)
         for (let index = 0; index < productsId.length; index++) {
             await UserProductModel.deleteMany({productId:productsId[index]})
         }
+        res.status(200).send({isDeleted:true})
+    } catch (error) {
+        console.error(error);
+        res.status(500).send({ error: error.messeage });
+    }
+}
+
+exports.deleteAfterAdminDeletedProduct = async(req,res) => {
+    try {
+        const {productId} = req.body
+        await UserProductModel.deleteMany({productId:productId})
         res.status(200).send({isDeleted:true})
     } catch (error) {
         console.error(error);
