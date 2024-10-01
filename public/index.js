@@ -855,3 +855,46 @@ async function handleCategorySearch() {
       }
     })
 }
+
+
+
+// Select the SVG element
+const svg = d3.select('#dataViz');
+const margin = { top: 20, right: 30, bottom: 30, left: 40 };
+const width = +svg.attr('width') - margin.left - margin.right;
+const height = +svg.attr('height') - margin.top - margin.bottom;
+
+// Function to fetch data from backend
+async function fetchData() {
+  await fetch('/purchase/getAllPurchases')
+    .then(response => response.json())
+    .then(data => {
+      const newData = data.purchases
+      console.log(newData)
+      // Define X and Y scales
+      const x = d3.scaleLinear().domain(d3.extent(newData, d => Number(d.userId))).range([margin.left, width - margin.right]);
+      const y = d3.scaleLinear().domain(d3.extent(newData, d => Number(d.totalPrice))).range([height - margin.bottom, margin.top]);
+
+      // Add X axis
+      svg.append("g")
+        .attr("transform", `translate(0,${height - margin.bottom})`)
+        .call(d3.axisBottom(x));
+
+      // Add Y axis
+      svg.append("g")
+        .attr("transform", `translate(${margin.left},0)`)
+        .call(d3.axisLeft(y));
+
+      // Add circles for data points
+      svg.append("g")
+        .selectAll("circle")
+        .data(newData)
+        .enter().append("circle")
+        .attr("cx", d => x(Number(d.userId)))
+        .attr("cy", d => y(Number(d.totalPrice)))
+        .attr("r", 5)
+        .attr("fill", "steelblue");
+    })
+    .catch(error => console.error('Error fetching data:', error));
+}
+

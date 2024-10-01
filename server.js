@@ -5,6 +5,9 @@ const PORT = 8080;
 const express = require('express')
 const app = express()
 
+//for sharing data to D3.js
+const cors = require('cors');
+
 //for cookies
 const cookieParser = require('cookie-parser')
 app.use(cookieParser())
