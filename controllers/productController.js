@@ -2,15 +2,15 @@ const ProductModel = require("../models/productModel");
 
 exports.addProduct = async(req,res) => {
     try {
-        const { title,description,price,amount,img, category } = req.body;
+        const { title,description,price,amount,img, category, sex, size } = req.body;
         const findProduct = await ProductModel.findOne({title:title});
         if(findProduct) {
           res.status(200).send({ isExits: true, isCreated: false });
         } else {
           if(img) {
-            const productDB = await ProductModel.create({ title:title,description:description,price:price,amount:amount,img:img, category:category});
+            const productDB = await ProductModel.create({ title:title,description:description,price:price,amount:amount,img:img, category:category, sex:sex, size:size});
           } else {
-            const productDB = await ProductModel.create({ title:title,description:description,price:price,amount:amount, category:category});
+            const productDB = await ProductModel.create({ title:title,description:description,price:price,amount:amount, category:category, sex:sex, size:size});
           }          
           res.status(201).send({ isExits: false, isCreated: true });
         }
@@ -43,8 +43,8 @@ exports.deleteProduct = async(req,res) => {
 
 exports.updateProduct = async(req,res) => {
   try {
-    const {title,description,price,amount,img,category,_id} = req.body;
-    await ProductModel.findOneAndUpdate({_id}, {title,description,price,amount,img,category});
+    const {title,description,price,amount,img,category,sex,size,_id} = req.body;
+    await ProductModel.findOneAndUpdate({_id}, {title,description,price,amount,img,category,sex,size});
     res.status(200).send({isUptadet:true})
   } catch (error) {
       console.error(error);
@@ -87,41 +87,20 @@ exports.removeProductFromCart = async(req,res) => {
   }
 }
 
-exports.setProductCookie = async(req,res) => {
-  try {
-    const {productId} = req.body;
-    const product = await ProductModel.findOne({_id:productId});
-    if(product) {
-      res.clearCookie('product');
-      res.cookie('product', product, { maxAge: 900000, httpOnly: true });
-      res.status(200).send({isFound:true, product: product})
-    } else {
-      res.status(200).send({isFound:false, product: undefined})
-    }
-  } catch (error) {
-      console.error(error);
-      res.status(500).send({ error: error.messeage });
-  }
-}
-
-exports.getProductCookie = async(req,res) => {
-  try {
-    const product = req.cookies.product;
-    if(product) {
-      res.status(200).send({isFound:true, product: product})
-    } else {
-      res.status(200).send({isFound:false, product: undefined})
-    }
-  } catch (error) {
-      console.error(error);
-      res.status(500).send({ error: error.messeage });
-  }
-}
-
 exports.getProductsByCategory = async(req,res) => {
   try {
-    const {productsCategory} = req.body;
-    const products = await ProductModel.find({category:productsCategory});
+    const {productsCategory,size,sex} = req.body;
+    let filters = {};
+    if (productsCategory && productsCategory !== 'all products') {
+      filters.category = productsCategory;
+    }
+    if (size && size !== 'All Sizes') {
+      filters.size = size;
+    }
+    if (sex && sex !== 'All Sex') {
+      filters.sex = sex;
+    }
+    const products = await ProductModel.find(filters);
     res.status(200).send({isFound:true, products: products})
   } catch (error) {
       console.error(error);
@@ -149,6 +128,17 @@ exports.getProductsIdByCategory = async(req,res) => {
       productsId[index] = product._id
     })
     res.status(200).send({productsId:productsId})
+  } catch (error) {
+      console.error(error);
+      res.status(500).send({ error: error.messeage });
+  }
+}
+
+exports.viewProduct = async(req,res) => {
+  try {
+    const {productId} = req.params;
+    const product = await ProductModel.findOne({_id:productId});
+    res.status(200).send({product})
   } catch (error) {
       console.error(error);
       res.status(500).send({ error: error.messeage });

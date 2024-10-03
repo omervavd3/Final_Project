@@ -134,8 +134,10 @@ async function loadStore() {
           <h5 class="productPrice">${product.price}$</h5>
           <h5 class="productAmount">${product.amount} in stock</h5>
           <h5 class="productCategory">Category: ${product.category}</h5>
+          <h5 class="productSize">${product.size}</h5>
+          <h5 class="productSex">${product.sex}</h5>
           <button onclick="handleAddToCart('${product._id}')">Add to cart</button>
-          <button onclick="getProductToProductPage('${product._id}')">View</button>
+          <button onclick="loadProductPageTest('${product._id}')">View</button>
         </div>
       `
       } else {
@@ -147,6 +149,8 @@ async function loadStore() {
           <h5 class="productPrice">${product.price}$</h5>
           <h5 class="productAmount">${product.amount} in stock</h5>
           <h5 class="productCategory">Category: ${product.category}</h5>
+          <h5 class="productSize">${product.size}</h5>
+          <h5 class="productSex">${product.sex}</h5>
           <button onclick="getProductToProductPage('${product._id}')">View</button>
         </div>
       ` 
@@ -179,7 +183,7 @@ async function loadStore() {
 
 //Load admin page
 async function loadAdminStore() {
-    await fetch("/product/getProducts", {
+  await fetch("/user/isAdminLoggedIn", {
     method: "GET",
     headers: {
       Accept: "application/json",
@@ -187,25 +191,45 @@ async function loadAdminStore() {
     },
   })
   .then((res) => res.json())
-  .then((data) => {
-    const products = data.allProducts;
-    const allProductsDiv = document.getElementById("allProducts");
-    const html = products.map((product) => {
-      return `
-        <div class="product">
-          <h2 class="productTitle">${product.title}</h2>
-          <img class="productImg" src="${product.img}" alt="">
-          <p class="productText">${product.description}</p>
-          <h5 class="productPrice">${product.price}$</h5>
-          <h5 class="productAmount">${product.amount} in stock</h5>
-          <h5 class="productCategory">Category: ${product.category}</h5>
-          <button onclick="handleUpdateProduct('${product.title}', '${product.description}', '${product.price}', '${product.amount}', '${product.img}', '${product._id}')">Uptade ${product.title}</button>
-          <button onclick="handleDeleteProduct('${product._id}')">Delete ${product.title}</button>
-        </div>
-      `
-    }).join(" ")
-    allProductsDiv.innerHTML = html;
+  .then(async (data) => {
+    console.log(data)
+    if (data.isAdminLoggedIn) {
+      await fetch("/product/getProducts", {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+    })
+    .then((res) => res.json())
+    .then((data) => {
+      const products = data.allProducts;
+      const allProductsDiv = document.getElementById("allProducts");
+      const html = products.map((product) => {
+        return `
+          <div class="product">
+            <h2 class="productTitle">${product.title}</h2>
+            <img class="productImg" src="${product.img}" alt="">
+            <p class="productText">${product.description}</p>
+            <h5 class="productPrice">${product.price}$</h5>
+            <h5 class="productAmount">${product.amount} in stock</h5>
+            <h5 class="productCategory">Category: ${product.category}</h5>
+            <h5 class="productSize">${product.size}</h5>
+            <h5 class="productSex">${product.sex}</h5>
+            <button onclick="handleUpdateProduct('${product.title}', '${product.description}', '${product.price}', '${product.amount}', '${product.img}', '${product._id}')">Uptade ${product.title}</button>
+            <button onclick="handleDeleteProduct('${product._id}')">Delete ${product.title}</button>
+          </div>
+        `
+      }).join(" ")
+      allProductsDiv.innerHTML = html;
+    })
+      
+    } else {
+      alert('Admin not logged in!')
+      window.location.href = './index.html'
+    }
   })
+
 }
 
 //Adds product
@@ -217,8 +241,10 @@ async function handleAddProduct(ev) {
   const amount = ev.target.elements.amount.value;
   const img = ev.target.elements.img.value;
   const category = ev.target.elements.category.value;
+  const sex = ev.target.elements.sex.value;
+  const size = ev.target.elements.size.value;
   ev.target.reset();
-  const newProduct = { title: title, description: description, price: price, amount:amount, img:img, category:category };
+  const newProduct = { title: title, description: description, price: price, amount:amount, img:img, category:category, sex:sex, size:size };
   await fetch("/product/addProduct", {
     method: "POST",
     headers: {
@@ -268,6 +294,15 @@ async function handleUpdateProduct(title,description,price,amount,img,id,categor
             <select name="category">
               ${options}
             </select>
+            <select name="sex">
+                <option value="Men">Men</option>
+                <option value="Women">Women</option>
+            </select>
+            <select name="size">
+                <option value="250">250 mm</option>
+                <option value="500">500 mm</option>
+                <option value="750">750 mm</option>
+            </select>
             <input type="text" name="_id" value="${id}" style="display: none;">
             <input type="submit" value="Send">
             </form>
@@ -283,6 +318,8 @@ async function handleUpdateProductHelper(ev) {
   const amount = ev.target.elements.amount.value;
   const img = ev.target.elements.img.value;
   const category = ev.target.elements.category.value;
+  const sex = ev.target.elements.sex.value;
+  const size = ev.target.elements.size.value;
   const _id = ev.target.elements._id.value;
   ev.target.reset();
   await fetch("/product/updateProduct", {
@@ -291,7 +328,7 @@ async function handleUpdateProductHelper(ev) {
       Accept: "application/json",
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({title,description,price,amount,img,category,_id}),
+    body: JSON.stringify({title,description,price,amount,img,category,sex,size,_id}),
   })
   .then((res) => res.json())
   .then((data) => {
@@ -333,26 +370,8 @@ async function handleDeleteProduct(id) {
   })
 }
 
-//Sets product cookie
-async function getProductToProductPage(productId) {
-  await fetch("/product/setProductCookie", {
-    method: "POST",
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({productId: productId}),
-  })
-  .then((res) => res.json())
-  .then((data) => {
-    console.log(data);
-    window.location.href = "./productPage.html"
-  })
-}
-
-//Load product page
-async function loadProductPage() {
-  await fetch("/product/getProductFromCookie", {
+async function loadProductPageTest(id) {
+  await fetch(`/product/viewProduct/${id}`, {
     method: "GET",
     headers: {
       Accept: "application/json",
@@ -361,22 +380,29 @@ async function loadProductPage() {
   })
   .then((res) => res.json())
   .then((data) => {
-    console.log(data);
     const product = data.product
-    const viewProductDiv = document.getElementById("viewProduct");
+    const viewProductDiv = document.getElementById("viewProductTest");
+    viewProductDiv.style.display = "flex"
     const html = 
     `
       <div class="product">
+        <button onclick="closeViewProduct()">Close</button>
         <h2 class="productTitle">${product.title}</h2>
         <img class="productImg" src="${product.img}" alt="">
         <p class="productText">${product.description}</p>
         <h5 class="productPrice">${product.price}$</h5>
         <h5 class="productAmount">${product.amount} in stock</h5>
+        <h5 class="productSize">${product.size}</h5>
+        <h5 class="productSex">${product.sex}</h5>
         <h5 class="productCategory">Category: ${product.category}</h5>
       </div>
     `
     viewProductDiv.innerHTML = html;
   })
+}
+
+function closeViewProduct() {
+  document.getElementById("viewProductTest").style.display = "none"
 }
 
 
@@ -475,6 +501,8 @@ async function loadCartPageAndCheckOutPage() {
               <h5 class="productPrice">${product.price}$</h5>
               <h5 class="productAmount">Amount in cart: ${productsAmount[index]}</h5>
               <h5 class="productCategory">Category: ${product.category}</h5>
+              <h5 class="productSize">${product.size}</h5>
+              <h5 class="productSex">${product.sex}</h5>
               <button onclick="handleRemoveFromCart('${product._id}')">Remove from cart</button>
           </div>
             `
@@ -501,13 +529,12 @@ async function loadCartPageAndCheckOutPage() {
                   <p class="productText">${product.description}</p>
                   <h5 class="productPrice">${product.price}$</h5>
                   <h5 class="productAmount">Amount in cart: ${productsAmount[index]}</h5>
-                  <h5 class="productCategory">Category: ${product.category}</h5>
               </div>
             `
         }).join(" ")
         +
         `
-            <h5 class="totalAmount">Total amount: ${totalPrice}</h5>
+            <h5 class="totalAmount">Total amount: ${totalPrice}$</h5>
             <button id="purchaseButton">Purchase</button>
         `
         checkOutDetailsDiv.innerHTML = checkOutDetailsDivHtml;
@@ -597,8 +624,7 @@ async function loadPurchaseHistory() {
   .then((res) => res.json())
   .then(async (data) => {
     const purchases = data.purchases;
-    console.log(purchases)
-    if(!purchases) {
+    if(!purchases[0]) {
       purchaseHistory.innerHTML = "<h2>No purchases has been made</h2>"
     } else {
       var html = ``;
@@ -635,6 +661,7 @@ async function loadPurchaseHistory() {
         })
         .then((res) => res.json())
         .then((data) => {
+          console.log(data)
           name = data.user.name
         })
 
@@ -787,17 +814,15 @@ async function loadCategoryToStore() {
 //Filter by category
 async function handleCategorySearch() {
   const categoryFilterSearch = document.getElementById("categoryFilterSearch").value
-  if(categoryFilterSearch == 'all products') {
-    loadStore()
-    return
-  }
+  const sizeFilterSearch = document.getElementById("sizeFilterSearch").value
+  const sexFilterSearch = document.getElementById("sexFilterSearch").value
   await fetch("/product/getProductsByCategory", {
     method: "POST",
     headers: {
       Accept: "application/json",
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({productsCategory: categoryFilterSearch}),
+    body: JSON.stringify({productsCategory: categoryFilterSearch, size:sizeFilterSearch, sex:sexFilterSearch}),
     })
     .then((res) => res.json())
     .then((data) => {
@@ -813,8 +838,10 @@ async function handleCategorySearch() {
             <h5 class="productPrice">${product.price}$</h5>
             <h5 class="productAmount">${product.amount} in stock</h5>
             <h5 class="productCategory">Category: ${product.category}</h5>
+            <h5 class="productSize">${product.size}</h5>
+            <h5 class="productSex">${product.sex}</h5>
             <button onclick="handleAddToCart('${product._id}')">Add to cart</button>
-            <button onclick="getProductToProductPage('${product._id}')">View</button>
+            <button onclick="loadProductPageTest('${product._id}')">View</button>
           </div>
         `
         } else {
@@ -826,6 +853,8 @@ async function handleCategorySearch() {
             <h5 class="productPrice">${product.price}$</h5>
             <h5 class="productAmount">${product.amount} in stock</h5>
             <h5 class="productCategory">Category: ${product.category}</h5>
+            <h5 class="productSize">${product.size}</h5>
+            <h5 class="productSex">${product.sex}</h5>
             <button onclick="getProductToProductPage('${product._id}')">View</button>
           </div>
         ` 
@@ -858,14 +887,14 @@ async function handleCategorySearch() {
 
 
 
-// Select the SVG element
-const svg = d3.select('#dataViz');
-const margin = { top: 20, right: 30, bottom: 30, left: 40 };
-const width = +svg.attr('width') - margin.left - margin.right;
-const height = +svg.attr('height') - margin.top - margin.bottom;
 
 // Function to fetch data from backend
 async function fetchData() {
+  // Select the SVG element
+  const svg = d3.select('#dataViz');
+  const margin = { top: 20, right: 30, bottom: 30, left: 40 };
+  const width = +svg.attr('width') - margin.left - margin.right;
+  const height = +svg.attr('height') - margin.top - margin.bottom;
   await fetch('/purchase/getAllPurchases')
     .then(response => response.json())
     .then(data => {

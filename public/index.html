@@ -10,15 +10,22 @@
 </head>
 
 <body onload="loadStore(), loadCategoryToStore()">
-    
+
     <h1 id="helloMessage">Hello</h1>
 
 
     <select id="categoryFilterSearch" name="category" onchange="handleCategorySearch()">
-        <!-- <option value="all products">All Products</option>
-        <option value="Fruits">Fruits</option>
-        <option value="Dairy">Dairy</option>
-        <option value="Hot Girls">Hot Girls</option> -->
+    </select>
+    <select name="color" id="sizeFilterSearch" onchange="handleCategorySearch()">
+        <option value="All Sizes">All Sizes</option>
+        <option value="250">250 mm</option>
+        <option value="500">500 mm</option>
+        <option value="750">750 mm</option>
+    </select>
+    <select name="sex" id="sexFilterSearch" onchange="handleCategorySearch()">
+        <option value="All Sex">All Sex</option>
+        <option value="Men">Men</option>
+        <option value="Women">Women</option>
     </select>
 
     <div id="signUpForm">
@@ -41,6 +48,7 @@
     </div>
 
     <div id="allProducts"></div>
+    <div id="viewProductTest"></div>
 </body>
 
 </html>

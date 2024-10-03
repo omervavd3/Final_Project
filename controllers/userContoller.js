@@ -44,6 +44,7 @@ exports.logIn = async(req,res) => {
     if(userDB) {
       if(userDB.name == process.env.ADMIN_NAME && userDB.password == adminPass) {
         res.clearCookie('user')
+        res.cookie('userAdmin', userDB._id, { maxAge: 50000000, httpOnly: true });
         res.status(200).send({ message: "Found", admin: true, user:userDB})
       } else {
         res.cookie('user', userDB._id, { maxAge: 50000000, httpOnly: true });
@@ -91,7 +92,22 @@ exports.isLoggedIn = async(req,res) => {
 exports.logOut = async(req,res) => {
   try {
     res.clearCookie('user')
+    res.clearCookie('userAdmin')
     res.status(200).send({isLoggedOut:true})
+  } catch (error) {
+      console.error(error);
+      res.status(500).send({ error: error.messeage });
+  }
+}
+
+exports.isAdminLoggedIn = async(req,res) => {
+  try {
+    const userId = req.cookies['userAdmin']
+    if(userId == process.env.ADMIN_ID) {
+      res.status(200).send({isAdminLoggedIn:true})
+    } else {
+      res.status(200).send({isAdminLoggedIn:false})
+    }
   } catch (error) {
       console.error(error);
       res.status(500).send({ error: error.messeage });
